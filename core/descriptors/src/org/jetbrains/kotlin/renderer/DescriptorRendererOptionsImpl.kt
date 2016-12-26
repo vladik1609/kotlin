@@ -54,7 +54,7 @@ internal class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     }
 
     private fun <T> property(initialValue: T): ReadWriteProperty<DescriptorRendererOptionsImpl, T> {
-        return Delegates.vetoable(initialValue) { property, oldValue, newValue ->
+        return Delegates.vetoable(initialValue) { _, _, _ ->
             if (isLocked) {
                 throw IllegalStateException("Cannot modify readonly DescriptorRendererOptions")
             }

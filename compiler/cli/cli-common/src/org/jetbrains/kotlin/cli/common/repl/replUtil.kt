@@ -26,7 +26,7 @@ fun makeScriptBaseName(codeLine: ReplCodeLine, generation: Long) =
 fun renderReplStackTrace(cause: Throwable, startFromMethodName: String): String {
     val newTrace = arrayListOf<StackTraceElement>()
     var skip = true
-    for ((i, element) in cause.stackTrace.withIndex().reversed()) {
+    for ((_, element) in cause.stackTrace.withIndex().reversed()) {
         if ("${element.className}.${element.methodName}" == startFromMethodName) {
             skip = false
         }

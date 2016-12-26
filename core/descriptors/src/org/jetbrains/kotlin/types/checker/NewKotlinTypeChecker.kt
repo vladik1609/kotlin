@@ -191,7 +191,7 @@ object NewKotlinTypeChecker : KotlinTypeChecker {
             else -> { // at least 2 supertypes with same constructors. Such case is rare
                 if (supertypesWithSameConstructor.any { isSubtypeForSameConstructor(it.arguments, superType) }) return true
 
-                val newArguments = superConstructor.parameters.mapIndexed { index, parameterDescriptor ->
+                val newArguments = superConstructor.parameters.mapIndexed { index, _ ->
                     val allProjections = supertypesWithSameConstructor.map {
                         it.arguments.getOrNull(index)?.check { it.projectionKind == Variance.INVARIANT }?.type?.unwrap()
                         ?: error("Incorrect type: $it, subType: $subType, superType: $superType")

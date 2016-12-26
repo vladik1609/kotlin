@@ -38,7 +38,7 @@ class OverloadResolver(
     fun checkOverloads(c: BodiesResolveContext) {
         val inClasses = findConstructorsInNestedClassesAndTypeAliases(c)
 
-        for ((key, value) in c.declaredClasses) {
+        for ((_, value) in c.declaredClasses) {
             checkOverloadsInClass(value, inClasses.get(value))
         }
         checkOverloadsInPackages(c)
@@ -215,7 +215,7 @@ class OverloadResolver(
         val bySourceFile = members.groupBy { DescriptorUtils.getContainingSourceFile(it) }
 
         var hasGroupIncludingNonPrivateMembers = false
-        for ((sourceFile, membersInFile) in bySourceFile) {
+        for ((_, membersInFile) in bySourceFile) {
             // File member groups are interesting in redeclaration check if at least one file member is private.
             if (membersInFile.any { it.isPrivate() }) {
                 hasGroupIncludingNonPrivateMembers = true

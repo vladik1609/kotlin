@@ -328,7 +328,7 @@ class SmartCompletion(
     private fun createNamedArgumentWithValueLookupElement(name: Name, value: String, priority: SmartCompletionItemPriority): LookupElement {
         val lookupElement = LookupElementBuilder.create("${name.asString()} = $value")
                 .withIcon(KotlinIcons.PARAMETER)
-                .withInsertHandler({ context, item -> context.document.replaceString(context.startOffset, context.tailOffset, "${name.render()} = $value") })
+                .withInsertHandler({ context, _ -> context.document.replaceString(context.startOffset, context.tailOffset, "${name.render()} = $value") })
         lookupElement.putUserData(SmartCompletionInBasicWeigher.NAMED_ARGUMENT_KEY, Unit)
         lookupElement.assignSmartCompletionPriority(priority)
         return lookupElement

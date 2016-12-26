@@ -545,7 +545,7 @@ class QualifiedExpressionResolver {
             trace: BindingTrace,
             position: QualifierPosition
     ) {
-        path.foldRight(packageView) { (name, expression), currentView ->
+        path.foldRight(packageView) { (_, expression), currentView ->
             storeResult(trace, expression, currentView, shouldBeVisibleFrom = null, position = position)
             currentView.containingDeclaration
             ?: error("Containing Declaration must be not null for package with fqName: ${currentView.fqName}, " +

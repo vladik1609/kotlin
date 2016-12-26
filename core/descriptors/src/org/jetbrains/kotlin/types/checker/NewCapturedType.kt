@@ -35,7 +35,7 @@ fun captureFromArguments(
     if (arguments.all { it.projectionKind == Variance.INVARIANT }) return type
 
     val newArguments = arguments.mapIndexed {
-        index, projection ->
+        _, projection ->
         if (projection.projectionKind == Variance.INVARIANT) return@mapIndexed projection
 
         val lowerType = if (!projection.isStarProjection && projection.projectionKind == Variance.IN_VARIANCE) {

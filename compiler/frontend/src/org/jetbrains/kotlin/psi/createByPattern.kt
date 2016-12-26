@@ -127,7 +127,7 @@ fun <TElement : KtElement> createByPattern(pattern: String, vararg args: Any, fa
         if (arg is String) continue // already in the text
         val expectedElementType = (argumentTypes[n] as PsiElementPlaceholderArgumentType<*, *>).placeholderClass
 
-        for ((range, text) in placeholders) {
+        for ((range, _) in placeholders) {
             val token = resultElement.findElementAt(range.startOffset)!!
             for (element in token.parentsWithSelf) {
                 val elementRange = element.textRange.shiftRight(-start)

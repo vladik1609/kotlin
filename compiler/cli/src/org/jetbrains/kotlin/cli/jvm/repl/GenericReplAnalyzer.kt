@@ -71,7 +71,7 @@ class GenericReplAnalyzer(environment: KotlinCoreEnvironment,
                 trace,
                 environment.configuration,
                 { scope -> JvmPackagePartProvider(environment, scope) },
-                { storageManager, files -> ScriptMutableDeclarationProviderFactory() }
+                { _, _ -> ScriptMutableDeclarationProviderFactory() }
         )
 
         this.module = container.get<ModuleDescriptorImpl>()

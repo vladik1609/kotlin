@@ -16,14 +16,14 @@
 
 package org.jetbrains.kotlin.cli.common.output.outputUtils
 
-import org.jetbrains.kotlin.backend.common.output.OutputFileCollection
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import java.io.File
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.backend.common.output.OutputFileCollection
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
+import java.io.File
 
 fun OutputFileCollection.writeAll(outputDir: File, report: (file: OutputFile, sources: List<File>, output: File) -> Unit) {
     for (file in asList()) {
@@ -34,14 +34,15 @@ fun OutputFileCollection.writeAll(outputDir: File, report: (file: OutputFile, so
     }
 }
 
-private val REPORT_NOTHING = { file: OutputFile, sources: List<File>, output: File -> }
+private val REPORT_NOTHING = { _: OutputFile, _: List<File>, _: File -> }
 
 fun OutputFileCollection.writeAllTo(outputDir: File) {
     writeAll(outputDir, REPORT_NOTHING)
 }
 
 fun OutputFileCollection.writeAll(outputDir: File, messageCollector: MessageCollector) {
-    writeAll(outputDir) { file, sources, output ->
-        messageCollector.report(CompilerMessageSeverity.OUTPUT, OutputMessageUtil.formatOutputMessage(sources, output), CompilerMessageLocation.NO_LOCATION)
+    writeAll(outputDir) { _, sources, output ->
+        messageCollector.report(
+                CompilerMessageSeverity.OUTPUT, OutputMessageUtil.formatOutputMessage(sources, output), CompilerMessageLocation.NO_LOCATION)
     }
 }

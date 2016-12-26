@@ -223,7 +223,7 @@ class KotlinPluginUpdater(val propertiesComponent: PropertiesComponent) : Dispos
         val notification = notificationGroup.createNotification(
                 "Kotlin",
                 "A new version ${update.pluginDescriptor.version} of the Kotlin plugin is available. <b><a href=\"#\">Install</a></b>",
-                NotificationType.INFORMATION) { notification, event ->
+                NotificationType.INFORMATION) { notification, _ ->
             notification.expire()
             installPluginUpdate(update) {
                 notifyPluginUpdateAvailable(update)
@@ -279,7 +279,7 @@ class KotlinPluginUpdater(val propertiesComponent: PropertiesComponent) : Dispos
             val notification = notificationGroup.createNotification(
                     "Kotlin",
                     "Plugin update was not installed$fullMessage. <a href=\"#\">See the log for more information</a>",
-                    NotificationType.INFORMATION) { notification, event ->
+                    NotificationType.INFORMATION) { notification, _ ->
 
                 val logFile = File(PathManager.getLogPath(), "idea.log")
                 ShowFilePathAction.openFile(logFile)

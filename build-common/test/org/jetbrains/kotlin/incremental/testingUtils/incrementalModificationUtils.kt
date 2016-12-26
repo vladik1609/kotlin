@@ -81,8 +81,8 @@ fun getModificationsToPerform(
 
         val rules = mapOf<String, (String, File) -> Modification>(
                 newSuffix to { path, file -> ModifyContent(path, file) },
-                touchSuffix to { path, file -> TouchFile(path, touchPolicy) },
-                deleteSuffix to { path, file -> DeleteFile(path) }
+                touchSuffix to { path, _ -> TouchFile(path, touchPolicy) },
+                deleteSuffix to { path, _ -> DeleteFile(path) }
         )
 
         val modifications = ArrayList<Modification>()

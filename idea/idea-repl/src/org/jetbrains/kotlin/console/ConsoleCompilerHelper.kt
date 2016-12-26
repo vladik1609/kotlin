@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.console
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.compiler.CompileContext
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -39,8 +38,7 @@ class ConsoleCompilerHelper(
 
     fun compileModule() {
         if (ExecutionManager.getInstance(project).contentManager.removeRunContent(executor, contentDescriptor)) {
-            CompilerManager.getInstance(project).make(module) {
-                aborted: Boolean, errors: Int, warnings: Int, compileContext: CompileContext ->
+            CompilerManager.getInstance(project).make(module) { _, errors: Int, _, _ ->
                 if (!module.isDisposed) {
                     KotlinConsoleKeeper.getInstance(project).run(module, previousCompilationFailed = errors > 0)
                 }
