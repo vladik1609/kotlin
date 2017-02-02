@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.*
 import org.jetbrains.kotlin.descriptors.isOverridable
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.canRefactor
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_KEYWORD
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.*
 
 class MakeOverriddenMemberOpenFix(declaration: KtDeclaration) : KotlinQuickFixAction<KtDeclaration>(declaration) {
@@ -51,8 +52,7 @@ class MakeOverriddenMemberOpenFix(declaration: KtDeclaration) : KotlinQuickFixAc
         overriddenNonOverridableMembers.clear()
         containingDeclarationsNames.clear()
 
-        val descriptor = element.resolveToDescriptor()
-        if (descriptor !is CallableMemberDescriptor) return false
+        val descriptor = element.resolveToDescriptorIfAny(BodyResolveMode.FULL) as? CallableMemberDescriptor ?: return false
 
         for (overriddenDescriptor in getAllDeclaredNonOverridableOverriddenDescriptors(
                 descriptor)) {

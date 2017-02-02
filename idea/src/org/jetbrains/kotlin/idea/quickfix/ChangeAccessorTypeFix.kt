@@ -22,6 +22,7 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.idea.core.ShortenReferences
@@ -29,11 +30,12 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 class ChangeAccessorTypeFix(element: KtPropertyAccessor) : KotlinQuickFixAction<KtPropertyAccessor>(element) {
     private fun getType(): KotlinType? {
-        val type = (element!!.property.resolveToDescriptor() as VariableDescriptor).type
+        val type = (element!!.property.resolveToDescriptorIfAny(BodyResolveMode.FULL) as? VariableDescriptor)?.type ?: return null
         if (type.isError) return null
         return type
     }

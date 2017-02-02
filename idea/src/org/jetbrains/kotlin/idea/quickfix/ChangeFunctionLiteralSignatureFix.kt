@@ -23,12 +23,13 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.core.CollectingNameValidator
 import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.refactoring.changeSignature.*
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 class ChangeFunctionLiteralSignatureFix private constructor(
@@ -72,7 +73,7 @@ class ChangeFunctionLiteralSignatureFix private constructor(
         }
 
         override fun extractFixData(element: KtFunctionLiteral, diagnostic: Diagnostic): Data? {
-            val descriptor = element.resolveToDescriptor() as? FunctionDescriptor ?: return null
+            val descriptor = element.resolveToDescriptorIfAny(BodyResolveMode.FULL) as? FunctionDescriptor ?: return null
             val parameterTypes = Errors.EXPECTED_PARAMETERS_NUMBER_MISMATCH.cast(diagnostic).b
             return Data(descriptor, parameterTypes)
         }

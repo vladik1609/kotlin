@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.TypeParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.quickfix.KotlinIntentionActionFactoryWithDelegate
 import org.jetbrains.kotlin.idea.quickfix.QuickFixWithDelegateFactory
 import org.jetbrains.kotlin.idea.quickfix.createFromUsage.createClass.getUnsubstitutedTypeConstraintInfo
@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypeAndBranch
 import org.jetbrains.kotlin.psi.psiUtil.parents
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeProjectionImpl
 import org.jetbrains.kotlin.types.Variance
@@ -61,7 +62,7 @@ object CreateTypeParameterByUnresolvedRefActionFactory : KotlinIntentionActionFa
         val declaration = element.parents.firstOrNull {
             it is KtProperty || it is KtNamedFunction || it is KtClass
         } as? KtTypeParameterListOwner ?: return null
-        val containingDescriptor = declaration.resolveToDescriptor()
+        val containingDescriptor = declaration.resolveToDescriptorIfAny(BodyResolveMode.FULL) ?: return null
         val fakeTypeParameter = createFakeTypeParameterDescriptor(containingDescriptor, newName)
         val upperBoundType = getUnsubstitutedTypeConstraintInfo(element)?.let {
             it.performSubstitution(it.typeParameter.typeConstructor to TypeProjectionImpl(fakeTypeParameter.defaultType))?.upperBound
