@@ -1,6 +1,5 @@
 import java.util.HashMap
 import java.util.List
-import kotlin.collections.HashMap
 
 fun foo(p: HashMap<String, List<Int>>){}
 

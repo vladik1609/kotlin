@@ -67,7 +67,11 @@ class ShortenReferences(val options: (KtElement) -> Options = { Options.DEFAULT 
         private fun DeclarationDescriptor.asString()
                 = DescriptorRenderer.FQ_NAMES_IN_TYPES.render(this)
 
-        private fun KtReferenceExpression.targets(context: BindingContext) = getImportableTargets(context)
+        private fun KtReferenceExpression.targets(context: BindingContext) =
+                getImportableTargets(context)
+
+        private fun KtReferenceExpression.targetsWithoutAliases(context: BindingContext) =
+                getImportableTargets(context).map { (it as? TypeAliasDescriptor)?.classDescriptor ?: it }
 
         private fun mayImport(descriptor: DeclarationDescriptor, file: KtFile): Boolean {
             return descriptor.canBeReferencedViaImport()
@@ -356,7 +360,8 @@ class ShortenReferences(val options: (KtElement) -> Options = { Options.DEFAULT 
             if (element.qualifier == null) return AnalyzeQualifiedElementResult.Skip
             val referenceExpression = element.referenceExpression ?: return AnalyzeQualifiedElementResult.Skip
 
-            val target = referenceExpression.targets(bindingContext).singleOrNull() ?: return AnalyzeQualifiedElementResult.Skip
+            val target = referenceExpression.targets(bindingContext).singleOrNull()
+                         ?: return AnalyzeQualifiedElementResult.Skip
 
             val scope = element.getResolutionScope(bindingContext, resolutionFacade)
             val name = target.name
@@ -425,13 +430,13 @@ class ShortenReferences(val options: (KtElement) -> Options = { Options.DEFAULT 
 
             val selector = element.selectorExpression ?: return AnalyzeQualifiedElementResult.Skip
             val callee = selector.getCalleeExpressionIfAny() as? KtReferenceExpression ?: return AnalyzeQualifiedElementResult.Skip
-            val targets = callee.targets(bindingContext)
+            val targets = callee.targetsWithoutAliases(bindingContext)
             val varAsFunResolvedCall = callee.getResolvedCall(bindingContext) as? VariableAsFunctionResolvedCall
             if (targets.isEmpty()) return AnalyzeQualifiedElementResult.Skip
 
             val (newContext, selectorCopy) = copyAndAnalyzeSelector(element, bindingContext)
             val newCallee = selectorCopy.getCalleeExpressionIfAny() as KtReferenceExpression
-            val targetsWhenShort = newCallee.targets(newContext)
+            val targetsWhenShort = newCallee.targetsWithoutAliases(newContext)
             val varAsFunResolvedCallWhenShort = newCallee.getResolvedCall(newContext) as? VariableAsFunctionResolvedCall
             val targetsMatch = targetsMatch(targets, targetsWhenShort)
                                && (varAsFunResolvedCall == null || resolvedCallsMatch(varAsFunResolvedCall, varAsFunResolvedCallWhenShort))
