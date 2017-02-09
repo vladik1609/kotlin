@@ -31,6 +31,7 @@ import com.intellij.util.indexing.FileBasedIndex
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.getFileNameResolveEnteredWith
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinSourceFilterScope
 import org.jetbrains.kotlin.idea.util.application.runReadAction
@@ -43,7 +44,17 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 class KotlinAnnotatedElementsSearcher : QueryExecutor<PsiModifierListOwner, AnnotatedElementsSearch.Parameters> {
 
+    private val LOG = Logger.getInstance(KotlinAnnotatedElementsSearcher::class.java)
+
     override fun execute(p: AnnotatedElementsSearch.Parameters, consumer: Processor<PsiModifierListOwner>): Boolean {
+        val fileNameResolveEnteredWith = getFileNameResolveEnteredWith()
+        if (fileNameResolveEnteredWith != null) {
+            val candidates = getKotlinAnnotationCandidates(p.annotationClass, p.scope)
+            val file = candidates.firstOrNull()?.containingFile
+            val fileName = file?.virtualFile?.path ?: "<Unknown file>"
+            LOG.error("Resolve reentry: previous file $fileNameResolveEnteredWith, current file $fileName")
+            return true
+        }
         return processAnnotatedMembers(p.annotationClass, p.scope) { declaration ->
             when (declaration) {
                 is KtClass -> {

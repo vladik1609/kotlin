@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.idea.project.ResolveElementCache
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.AbsentDescriptorHandler
@@ -53,22 +54,29 @@ internal class ResolutionFacadeImpl(
 
     override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext {
         if (elements.isEmpty()) return BindingContext.EMPTY
-        val resolveElementCache = getFrontendService(elements.first(), ResolveElementCache::class.java)
-        return resolveElementCache.resolveToElements(elements, bodyResolveMode)
+        return use(elements.first().containingKtFile) {
+            val resolveElementCache = getFrontendService(elements.first(), ResolveElementCache::class.java)
+            resolveElementCache.resolveToElements(elements, bodyResolveMode)
+        }
     }
 
-    override fun analyzeFullyAndGetResult(elements: Collection<KtElement>): AnalysisResult
-            = projectFacade.getAnalysisResultsForElements(elements)
+    override fun analyzeFullyAndGetResult(elements: Collection<KtElement>): AnalysisResult {
+        return use(elements.firstOrNull()?.containingKtFile) {
+            projectFacade.getAnalysisResultsForElements(elements)
+        }
+    }
 
     override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor {
-        if (KtPsiUtil.isLocal(declaration)) {
-            val bindingContext = analyze(declaration, bodyResolveMode)
-            return bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
-                   ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(declaration)
-        }
-        else {
-            val resolveSession = projectFacade.resolverForModuleInfo(declaration.getModuleInfo()).componentProvider.get<ResolveSession>()
-            return resolveSession.resolveToDescriptor(declaration)
+        return use(declaration.containingKtFile) {
+            if (KtPsiUtil.isLocal(declaration)) {
+                val bindingContext = analyze(declaration, bodyResolveMode)
+                bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+                ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(declaration)
+            }
+            else {
+                val resolveSession = projectFacade.resolverForModuleInfo(declaration.getModuleInfo()).componentProvider.get<ResolveSession>()
+                resolveSession.resolveToDescriptor(declaration)
+            }
         }
     }
 
@@ -89,7 +97,33 @@ internal class ResolutionFacadeImpl(
     override fun <T : Any> getFrontendService(moduleDescriptor: ModuleDescriptor, serviceClass: Class<T>): T {
         return projectFacade.resolverForDescriptor(moduleDescriptor).componentProvider.getService(serviceClass)
     }
+
+    companion object {
+        private val entranceFileName = ThreadLocal<String?>()
+
+        private fun enter(file: KtFile?) {
+            entranceFileName.set(file?.virtualFile?.path ?: "Unknown file")
+        }
+
+        private inline fun <R> use(file: KtFile?, f: () -> R): R {
+            enter(file)
+            try {
+                return f()
+            }
+            finally {
+                leave()
+            }
+        }
+
+        private fun leave() {
+            entranceFileName.set(null)
+        }
+
+        internal fun entranceFileName() = entranceFileName.get()
+    }
 }
+
+fun getFileNameResolveEnteredWith(): String? = ResolutionFacadeImpl.entranceFileName()
 
 fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor? {
     return (this as? ResolutionFacadeImpl)?.findModuleDescriptor(ideaModuleInfo)
