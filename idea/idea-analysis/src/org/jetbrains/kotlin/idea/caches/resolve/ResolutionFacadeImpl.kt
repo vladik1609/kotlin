@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.AbsentDescriptorHandler
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
+import java.util.concurrent.ConcurrentHashMap
 
 internal class ResolutionFacadeImpl(
         private val projectFacade: ProjectResolutionFacade,
@@ -52,23 +53,42 @@ internal class ResolutionFacadeImpl(
     }
 
     override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext {
-        if (elements.isEmpty()) return BindingContext.EMPTY
-        val resolveElementCache = getFrontendService(elements.first(), ResolveElementCache::class.java)
-        return resolveElementCache.resolveToElements(elements, bodyResolveMode)
+        enter()
+        try {
+            if (elements.isEmpty()) return BindingContext.EMPTY
+            val resolveElementCache = getFrontendService(elements.first(), ResolveElementCache::class.java)
+            return resolveElementCache.resolveToElements(elements, bodyResolveMode)
+        }
+        finally {
+            leave()
+        }
     }
 
-    override fun analyzeFullyAndGetResult(elements: Collection<KtElement>): AnalysisResult
-            = projectFacade.getAnalysisResultsForElements(elements)
+    override fun analyzeFullyAndGetResult(elements: Collection<KtElement>): AnalysisResult {
+        enter()
+        try {
+            return projectFacade.getAnalysisResultsForElements(elements)
+        }
+        finally {
+            leave()
+        }
+    }
 
     override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor {
-        if (KtPsiUtil.isLocal(declaration)) {
-            val bindingContext = analyze(declaration, bodyResolveMode)
-            return bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
-                   ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(declaration)
+        enter()
+        try {
+            if (KtPsiUtil.isLocal(declaration)) {
+                val bindingContext = analyze(declaration, bodyResolveMode)
+                return bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+                       ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(declaration)
+            }
+            else {
+                val resolveSession = projectFacade.resolverForModuleInfo(declaration.getModuleInfo()).componentProvider.get<ResolveSession>()
+                return resolveSession.resolveToDescriptor(declaration)
+            }
         }
-        else {
-            val resolveSession = projectFacade.resolverForModuleInfo(declaration.getModuleInfo()).componentProvider.get<ResolveSession>()
-            return resolveSession.resolveToDescriptor(declaration)
+        finally {
+            leave()
         }
     }
 
@@ -89,7 +109,23 @@ internal class ResolutionFacadeImpl(
     override fun <T : Any> getFrontendService(moduleDescriptor: ModuleDescriptor, serviceClass: Class<T>): T {
         return projectFacade.resolverForDescriptor(moduleDescriptor).componentProvider.getService(serviceClass)
     }
+
+    companion object {
+        private val enteredThreads = ConcurrentHashMap<Thread, Unit>()
+
+        private fun enter() {
+            enteredThreads[Thread.currentThread()] = Unit
+        }
+
+        private fun leave() {
+            enteredThreads -= Thread.currentThread()
+        }
+
+        internal fun Thread.entered(): Boolean = enteredThreads.containsKey(this)
+    }
 }
+
+fun Thread.checkResolveEntered() = with (ResolutionFacadeImpl) { entered() }
 
 fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor? {
     return (this as? ResolutionFacadeImpl)?.findModuleDescriptor(ideaModuleInfo)
