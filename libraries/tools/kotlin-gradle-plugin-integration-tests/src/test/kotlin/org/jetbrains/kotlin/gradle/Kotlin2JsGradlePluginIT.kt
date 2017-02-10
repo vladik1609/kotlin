@@ -69,7 +69,7 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsNoOutputFileProject.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.stream().filter { it.name == "kotlin2JsNoOutputFileProject_main.js" }.count())
+            assertEquals(1, jar.entries().asSequence().count { it.name == "kotlin2JsNoOutputFileProject_main.js" })
         }
     }
 
@@ -84,7 +84,7 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsModuleKind.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.stream().filter { it.name == "app.js" }.count())
+            assertEquals(1, jar.entries().asSequence().count { it.name == "app.js" })
         }
     }
 
@@ -143,7 +143,7 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsProjectWithCustomSourceset-inttests.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.stream().filter { it.name == "module-inttests.js" }.count())
+            assertEquals(1, jar.entries().asSequence().count { it.name == "module-inttests.js" })
         }
     }
 

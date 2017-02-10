@@ -201,13 +201,8 @@ internal class Kotlin2JsSourceSetProcessor(
 
         // outputFile can be set later during the configuration phase, get it only after the phase:
         project.afterEvaluate {
-            val outputDir = kotlinTask.outputFile.let { File(it).parentFile }
-            with(sourceSet.output) {
-                // check to avoid the jar content duplication
-                if (!dirs.contains(outputDir) && classesDir != outputDir) {
-                    dir(outputDir)
-                }
-            }
+            val outputDir = File(kotlinTask.outputFile).parentFile
+            sourceSet.output.setClassesDir(outputDir)
         }
     }
 
