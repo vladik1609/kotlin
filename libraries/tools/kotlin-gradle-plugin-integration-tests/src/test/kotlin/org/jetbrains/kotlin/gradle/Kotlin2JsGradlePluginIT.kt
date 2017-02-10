@@ -139,6 +139,11 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
 
             assertFileExists("build/kotlin2js/main/module.js")
             assertFileExists("build/kotlin2js/integrationTest/module-inttests.js")
+
+            val jarPath = "build/libs/kotlin2JsProjectWithCustomSourceset-inttests.jar"
+            assertFileExists(jarPath)
+            val jar = ZipFile(fileInWorkingDir(jarPath))
+            assertEquals(1, jar.stream().filter { it.name == "module-inttests.js" }.count())
         }
     }
 
