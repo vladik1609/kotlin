@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.util.getFileByName
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
 import java.io.File
+import java.util.zip.ZipFile
+import kotlin.test.assertEquals
 
 class Kotlin2JsGradlePluginIT : BaseGradleIT() {
     @Test
@@ -53,6 +55,36 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             assertSuccessful()
             assertReportExists()
             assertContains(":mainProject:cleanCompileKotlin2Js UP-TO-DATE")
+        }
+    }
+
+    @Test
+    fun testJarIncludesJsDefaultOutput() {
+        val project = Project("kotlin2JsNoOutputFileProject", "2.10")
+
+        project.build("jar") {
+            assertSuccessful()
+
+            assertContains(":compileKotlin2Js")
+            val jarPath = "build/libs/kotlin2JsNoOutputFileProject.jar"
+            assertFileExists(jarPath)
+            val jar = ZipFile(fileInWorkingDir(jarPath))
+            assertEquals(1, jar.stream().filter { it.name == "kotlin2JsNoOutputFileProject_main.js" }.count())
+        }
+    }
+
+    @Test
+    fun testJarIncludesJsOutputSetExplicitly() {
+        val project = Project("kotlin2JsModuleKind", "2.10")
+
+        project.build(":jar") {
+            assertSuccessful()
+
+            assertContains(":compileKotlin2Js")
+            val jarPath = "build/libs/kotlin2JsModuleKind.jar"
+            assertFileExists(jarPath)
+            val jar = ZipFile(fileInWorkingDir(jarPath))
+            assertEquals(1, jar.stream().filter { it.name == "app.js" }.count())
         }
     }
 

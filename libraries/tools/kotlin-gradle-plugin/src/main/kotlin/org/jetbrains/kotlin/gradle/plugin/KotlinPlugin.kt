@@ -21,15 +21,16 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl
-import org.jetbrains.kotlin.gradle.internal.*
+import org.jetbrains.kotlin.gradle.internal.AnnotationProcessingManager
+import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
+import org.jetbrains.kotlin.gradle.internal.Kapt3KotlinGradleSubplugin
 import org.jetbrains.kotlin.gradle.internal.Kapt3KotlinGradleSubplugin.Companion.getKaptClasssesDir
+import org.jetbrains.kotlin.gradle.internal.initKapt
 import org.jetbrains.kotlin.gradle.plugin.android.AndroidGradleWrapper
 import org.jetbrains.kotlin.gradle.plugin.android.KotlinJillTask
 import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.incremental.configureMultiProjectIncrementalCompilation
 import org.jetbrains.kotlin.incremental.multiproject.ArtifactDifferenceRegistryProviderAndroidWrapper
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.io.File
 import java.net.URL
 import java.util.*
@@ -187,17 +188,27 @@ internal class Kotlin2JsSourceSetProcessor(
         compileTaskNameSuffix = "kotlin2Js"
 ) {
     private val clean = project.tasks.findByName("clean")
-    private val build = project.tasks.findByName("build")
 
     override fun doCreateTask(project: Project, taskName: String): Kotlin2JsCompile =
             tasksProvider.createKotlinJSTask(project, taskName, sourceSet.name)
 
     override fun doTargetSpecificProcessing() {
         val taskName = kotlinTask.name
-        build?.dependsOn(taskName)
         clean?.dependsOn("clean" + taskName.capitalize())
+        project.tasks.findByName(sourceSet.classesTaskName).dependsOn(kotlinTask)
         kotlinTask.source(kotlinSourceSet.kotlin)
         createCleanSourceMapTask()
+
+        // outputFile can be set later during the configuration phase, get it only after the phase:
+        project.afterEvaluate {
+            val outputDir = kotlinTask.outputFile.let { File(it).parentFile }
+            with(sourceSet.output) {
+                // check to avoid the jar content duplication
+                if (!dirs.contains(outputDir) && classesDir != outputDir) {
+                    dir(outputDir)
+                }
+            }
+        }
     }
 
     private fun createCleanSourceMapTask() {
