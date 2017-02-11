@@ -187,14 +187,11 @@ internal class Kotlin2JsSourceSetProcessor(
         taskDescription = "Compiles the kotlin sources in $sourceSet to JavaScript.",
         compileTaskNameSuffix = "kotlin2Js"
 ) {
-    private val clean = project.tasks.findByName("clean")
 
     override fun doCreateTask(project: Project, taskName: String): Kotlin2JsCompile =
             tasksProvider.createKotlinJSTask(project, taskName, sourceSet.name)
 
     override fun doTargetSpecificProcessing() {
-        val taskName = kotlinTask.name
-        clean?.dependsOn("clean" + taskName.capitalize())
         project.tasks.findByName(sourceSet.classesTaskName).dependsOn(kotlinTask)
         kotlinTask.source(kotlinSourceSet.kotlin)
         createCleanSourceMapTask()
@@ -203,6 +200,7 @@ internal class Kotlin2JsSourceSetProcessor(
         project.afterEvaluate {
             val outputDir = File(kotlinTask.outputFile).parentFile
             sourceSet.output.setClassesDir(outputDir)
+            kotlinTask.destinationDir = outputDir
         }
     }
 
@@ -213,7 +211,7 @@ internal class Kotlin2JsSourceSetProcessor(
         task.delete(object : Closure<String>(this) {
             override fun call(): String? = (kotlinTask.property("outputFile") as String) + ".map"
         })
-        clean?.dependsOn(taskName)
+        project.tasks.findByName("clean")?.dependsOn(taskName)
     }
 }
 

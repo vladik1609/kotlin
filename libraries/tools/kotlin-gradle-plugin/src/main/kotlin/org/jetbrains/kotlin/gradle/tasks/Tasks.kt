@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.incremental.multiproject.ArtifactDifferenceRegistry
 import org.jetbrains.kotlin.incremental.multiproject.ArtifactDifferenceRegistryProvider
 import org.jetbrains.kotlin.utils.LibraryUtils
 import java.io.File
-import java.rmi.Remote
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -346,7 +345,6 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
 
         logger.debug("Calling compiler")
         destinationDir.mkdirs()
-        args.freeArgs = args.freeArgs + sourceRoots.kotlinSourceFiles.map { it.absolutePath }
 
         val friendDependency = friendTaskName
                 ?.let { project.getTasksByName(it, false).singleOrNull() as? Kotlin2JsCompile }

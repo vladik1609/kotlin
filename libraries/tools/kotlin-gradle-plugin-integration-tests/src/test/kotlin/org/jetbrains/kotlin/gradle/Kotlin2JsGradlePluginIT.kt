@@ -69,7 +69,8 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsNoOutputFileProject.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.entries().asSequence().count { it.name == "kotlin2JsNoOutputFileProject_main.js" })
+            assertEquals(1, jar.entries().asSequence().count { it.name == "kotlin2JsNoOutputFileProject_main.js" },
+                         "The jar should contain an entry `kotlin2JsNoOutputFileProject_main.js` with no duplicates")
         }
     }
 
@@ -84,7 +85,8 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsModuleKind.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.entries().asSequence().count { it.name == "app.js" })
+            assertEquals(1, jar.entries().asSequence().count { it.name == "app.js" },
+                         "The jar should contain an entry `app.js` with no duplicates")
         }
     }
 
@@ -143,7 +145,8 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             val jarPath = "build/libs/kotlin2JsProjectWithCustomSourceset-inttests.jar"
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
-            assertEquals(1, jar.entries().asSequence().count { it.name == "module-inttests.js" })
+            assertEquals(1, jar.entries().asSequence().count { it.name == "module-inttests.js" },
+                         "The jar should contain an entry `kotlin2JsNoOutputFileProject_main.js` with no duplicates")
         }
     }
 
