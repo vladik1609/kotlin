@@ -40,8 +40,6 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
         project.build("clean") {
             assertSuccessful()
             assertReportExists()
-            assertContains(":mainProject:cleanCompileKotlin2Js\n")
-            assertNoSuchFile("mainProject/web/js/app.js")
 
             // Test that we don't accidentally remove the containing directory
             // This would fail if we used the default clean task of the copy task
@@ -54,7 +52,6 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
         project.build("clean") {
             assertSuccessful()
             assertReportExists()
-            assertContains(":mainProject:cleanCompileKotlin2Js UP-TO-DATE")
         }
     }
 

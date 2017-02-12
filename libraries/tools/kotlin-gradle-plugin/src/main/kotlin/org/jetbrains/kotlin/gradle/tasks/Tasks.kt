@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.gradle.tasks
 
-import org.codehaus.groovy.runtime.MethodClosure
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.logging.Logger
@@ -320,10 +319,6 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
     val outputFile: String
         get() = kotlinOptions.outputFile ?: defaultOutputFile.canonicalPath
 
-    init {
-        @Suppress("LeakingThis")
-        outputs.file(MethodClosure(this, "getOutputFile"))
-    }
 
     override fun findKotlinCompilerJar(project: Project): File? =
             findKotlinJsCompilerJar(project)
