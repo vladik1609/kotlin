@@ -7,6 +7,7 @@ import com.android.build.gradle.internal.variant.BaseVariantData
 import com.android.build.gradle.internal.variant.BaseVariantOutputData
 import com.android.builder.model.SourceProvider
 import groovy.lang.Closure
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -198,7 +199,16 @@ internal class Kotlin2JsSourceSetProcessor(
 
         // outputFile can be set later during the configuration phase, get it only after the phase:
         project.afterEvaluate {
-            val outputDir = File(kotlinTask.outputFile).parentFile
+            kotlinTask.kotlinOptions.outputFile = File(kotlinTask.outputFile).absolutePath
+            val outputDir = File(kotlinTask.outputFile).normalize().parentFile
+
+            if (project.rootDir.startsWith(outputDir))
+                throw InvalidUserDataException(
+                        "The output directory '$outputDir' (defined by outputFile of $kotlinTask) contains or " +
+                        "matches the project root directory '${project.rootDir}'.\n" +
+                        "Gradle will not be able to build the project because of the root directory lock.\n" +
+                        "To fix this, consider using the default outputFile location instead of providing it explicitly.")
+
             sourceSet.output.setClassesDir(outputDir)
             kotlinTask.destinationDir = outputDir
         }

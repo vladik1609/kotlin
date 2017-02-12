@@ -328,7 +328,6 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
 
         if (defaultsOnly) return args
 
-        args.outputFile = outputFile
         kotlinOptionsImpl.updateArguments(args)
         return args
     }
