@@ -21,6 +21,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
+import org.jetbrains.kotlin.com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl
 import org.jetbrains.kotlin.gradle.internal.AnnotationProcessingManager
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
@@ -200,9 +201,9 @@ internal class Kotlin2JsSourceSetProcessor(
         // outputFile can be set later during the configuration phase, get it only after the phase:
         project.afterEvaluate {
             kotlinTask.kotlinOptions.outputFile = File(kotlinTask.outputFile).absolutePath
-            val outputDir = File(kotlinTask.outputFile).normalize().parentFile
+            val outputDir = File(kotlinTask.outputFile).parentFile
 
-            if (project.rootDir.startsWith(outputDir))
+            if (FileUtil.isAncestor(outputDir, project.rootDir, false))
                 throw InvalidUserDataException(
                         "The output directory '$outputDir' (defined by outputFile of $kotlinTask) contains or " +
                         "matches the project root directory '${project.rootDir}'.\n" +
