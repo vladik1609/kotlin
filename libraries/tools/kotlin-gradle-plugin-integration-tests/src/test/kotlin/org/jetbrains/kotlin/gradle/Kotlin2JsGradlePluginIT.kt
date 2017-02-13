@@ -143,7 +143,7 @@ class Kotlin2JsGradlePluginIT : BaseGradleIT() {
             assertFileExists(jarPath)
             val jar = ZipFile(fileInWorkingDir(jarPath))
             assertEquals(1, jar.entries().asSequence().count { it.name == "module-inttests.js" },
-                         "The jar should contain an entry `kotlin2JsNoOutputFileProject_main.js` with no duplicates")
+                         "The jar should contain an entry `module-inttests.js` with no duplicates")
         }
     }
 
