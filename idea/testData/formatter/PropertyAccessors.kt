@@ -5,14 +5,14 @@ class Hi {
 
 
 
-               get() = ""
+        get() = ""
 
     var getterAndSetter: Int = 0
 
-get() = 1
+        get() = 1
 
 
-    set(some) {
+        set(some) {
             field = some
         }
 
@@ -23,5 +23,21 @@ get() = 1
 class EmptyProperties {
     var newline: String
         get() { return "" }
+        set(value) {}
+}
+
+class EmptyProperties {
+    /**
+     *
+     */
+    var newline: String
+        /**
+         *
+         */
+        get() { return "" }
+
+        /**
+         *
+         */
         set(value) {}
 }
